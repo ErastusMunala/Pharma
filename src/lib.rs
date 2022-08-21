@@ -1,15 +1,61 @@
+#![cfg(dev)]
+#![allow(unused_imports)]
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::near_bindgen;
-
-#[near_bindgen]
-#[derive(Default, BorshDeserialize, BorshSerialize)]
-pub struct Contract {
-    // SETUP CONTRACT STATE
+use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::{env, near_bindgen};
+#[derive(BorshDeserialize, BorshSerialize, Debug)]
+pub struct Product {
+    name: String,
+    cost: i16,
+    quantity: i16,
 }
 
-#[near_bindgen]
-impl Contract {
-    // ADD CONTRACT METHODS HERE
+#[derive(BorshDeserialize, BorshSerialize, Debug)]
+pub struct Sales {
+    product_name: String,
+    quantity: i16,
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Debug)]
+pub struct Phamacy {
+    sales: Vec<Sales>,
+    products: Vec<Product>,
+}
+
+impl Default for Phamacy {
+    fn default() -> Self {
+        Phamacy {
+            sales: vec![],    
+            products: vec![],
+        }
+    }
+}
+
+impl Phamacy {
+    pub fn add_drug(&mut self, name: String, cost: i16, quantity: i16) {
+        let pr: Product = Product {
+            name: name,
+            cost: cost,
+            quantity: quantity,
+        };
+        self.products.push(pr)
+    }
+
+    pub fn sale_drug(&mut self, name: String, quantity: i16) {
+        self.products.iter_mut().for_each(|item| {
+            if item.name == name {
+                if quantity > item.quantity {
+                    let f = format!(
+                        "We cannot sell you this quantity {}  as we have {}",
+                        quantity, item.quantity
+                    );
+                    env::log(f.as_bytes());
+                } else {
+                    item.quantity -= quantity
+                }
+            }
+        });
+    }
 }
 
 /*
@@ -23,16 +69,28 @@ impl Contract {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use near_sdk::test_utils::{get_logs, VMContextBuilder};
-    use near_sdk::{testing_env, AccountId};
-
-    // part of writing unit tests is setting up a mock context
-    // provide a `predecessor` here, it'll modify the default context
-    fn get_context(predecessor: AccountId) -> VMContextBuilder {
-        let mut builder = VMContextBuilder::new();
-        builder.predecessor_account_id(predecessor);
-        builder
+    // TESTS HERE
+    #[test]
+    fn add_course() {
+        let mut pham = Phamacy::default();
+        pham.add_drug( "insulin".to_owned(),200,  10);
+        assert_eq!(pham.products.len(), 1);
     }
 
-    // TESTS HERE
+    #[test]
+    fn sell_drug() {
+        let mut pham = Phamacy::default();
+        pham.add_drug( "insulin".to_owned(),200,  10);
+        pham.sale_drug("insulin".to_owned(), 5);
+        // 
+
+        for x in pham.products{
+            if x.name == "insulin"{
+                assert_eq!(x.quantity, 5);
+                break;
+            }
+        }
+    }
+   
 }
+
