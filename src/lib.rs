@@ -1,9 +1,7 @@
-#![cfg(dev)]
-#![allow(unused_imports)]
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{env, near_bindgen};
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
+#[near_bindgen]
 pub struct Product {
     name: String,
     cost: i16,
@@ -11,12 +9,14 @@ pub struct Product {
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
+#[near_bindgen]
 pub struct Sales {
     product_name: String,
     quantity: i16,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
+#[near_bindgen]
 pub struct Phamacy {
     sales: Vec<Sales>,
     products: Vec<Product>,
@@ -30,7 +30,7 @@ impl Default for Phamacy {
         }
     }
 }
-
+#[near_bindgen]
 impl Phamacy {
     pub fn add_drug(&mut self, name: String, cost: i16, quantity: i16) {
         let pr: Product = Product {
@@ -49,7 +49,9 @@ impl Phamacy {
                         "We cannot sell you this quantity {}  as we have {}",
                         quantity, item.quantity
                     );
-                    env::log(f.as_bytes());
+                   // env.log_str(f.as_string());
+                   let s_slice: &str = &f[..];
+                        env::log_str(s_slice);
                 } else {
                     item.quantity -= quantity
                 }
@@ -71,7 +73,7 @@ mod tests {
     use super::*;
     // TESTS HERE
     #[test]
-    fn add_course() {
+    fn add_phamacy() {
         let mut pham = Phamacy::default();
         pham.add_drug( "insulin".to_owned(),200,  10);
         assert_eq!(pham.products.len(), 1);
