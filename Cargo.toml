@@ -1,8 +1,8 @@
 [package]
-name = "rust-template"
+name = Pharma
 version = "0.1.0"
-authors = ["Near Inc <hello@near.org>"]
-edition = "2018"
+authors = Erastus Munala
+edition = 2022
 
 [lib]
 crate-type = ["cdylib"]
